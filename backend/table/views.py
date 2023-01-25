@@ -1,6 +1,8 @@
 import json
 
+from django.contrib.auth.models import User
 from django.core import serializers
+from django.db import transaction, IntegrityError
 from django.http import JsonResponse
 from django.views import View
 
@@ -9,29 +11,52 @@ from table.models import Appeal
 
 class AppealsView(View):
     def get(self, request, *args, **kwargs):
-        error = None
-        data = ''
         params = request.GET
-        filter_param = params['filter']
-        search_param = params['search']
+
+        filter_by = params.get('filterBy').split('-')[0] if params.get('filterBy') else ''
+        filter_by_eq = params.get('filterBy').split('-')[1] if params.get('filterBy') else ''
+        order_by = params.get('orderBy') if params.get('orderBy') else ''
+        search_num = params.get('search')
 
         try:
-            if filter_param:
-                if filter_param in ['created_at', 'status']:
-                    data = serializers.serialize('json', Appeal.objects.order_by(filter_param))
-                else:
-                    data = serializers.serialize('json', Appeal.objects.filter(status=int(filter_param)))
-            elif search_param:
-                data = serializers.serialize('json', Appeal.objects.filter(number__contains=search_param))
-            else:
-                data = serializers.serialize('json', Appeal.objects.all())
-        except Exception:
-            pass
+            data = Appeal.objects.all()
 
-        print(data)
+            if filter_by == 'status':
+                data = data.filter(status=filter_by_eq)
+
+            if order_by:
+                data = data.order_by(order_by)
+
+            if search_num:
+                data = data.filter(number__contains=search_num)
+
+            data = serializers.serialize('json', data)
+
+        except Exception as e:
+            data = '[]'
 
         return JsonResponse({
-            'success': not error,
             'data': json.loads(data),
-            'error': error
+        })
+
+    def post(self, request, *args, **kwargs):
+        body = json.loads(request.body)
+        appeal_number = body.get('appealNumber')
+        description = body.get('description')
+        data = '[]'
+
+        if appeal_number and description:
+            try:
+                with transaction.atomic():
+                    new_appeal = Appeal(number=appeal_number, description=description, creator=User.objects.get(pk=1))
+                    new_appeal.save()
+                    data = str(new_appeal.number)
+                    print(data)
+            except IntegrityError as e:
+                data = '[]'
+            except Exception as e:
+                data = '[]'
+
+        return JsonResponse({
+            'data': json.loads(data),
         })

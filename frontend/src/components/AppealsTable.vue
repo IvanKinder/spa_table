@@ -1,72 +1,143 @@
 <template>
   <div class="hello">
-    <ModalWindow v-if="addAppealWindow"></ModalWindow>
-    <h2>Список Обращений</h2>
-    <ul class="nav">
-      <li class="nav-item">
-        <button type="button" class="btn btn-light" @click="getOpenedAppeals">Открытые</button>
-      </li>
-      <li class="nav-item">
-        <button type="button" class="btn btn-light" @click="getClosedAppeals">Закрытые</button>
-      </li>
-      <li class="nav-item">
-        <button type="button" class="btn btn-light" @click="getAllAppeals">Все</button>
-      </li>
-      <li class="nav-item">
-        <input type="search" class="form-control" @input="searchByNumber" id="search" placeholder="search by number">
-      </li>
-      <li class="nav-item dropdown">
-        <button type="button" class="btn btn-light nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Сортировка</button>
-        <ul class="dropdown-menu">
-          <li><button type="button" class="btn btn-light dropdown-item" @click="getSortedAppeals('created_at')">По дате</button></li>
-          <li><button type="button" class="btn btn-light dropdown-item" @click="getSortedAppeals('status')">По статусу</button></li>
-        </ul>
-      </li>
-      <li class="nav-item">
-        <button type="button" class="btn btn-light" @click="onAddClick">Добавить</button>
-      </li>
-      <div class="container">
-        <div class="row">
-          <div class="col">
-            Номер заявки
-          </div>
-          <div class="col">
-            Дата создания
-          </div>
-          <div class="col">
-            Описание
-          </div>
-          <div class="col">
-            Создатель
-          </div>
-          <div class="col">
-            Статус
-          </div>
+    <ModalWindow ref="modal"></ModalWindow>
+    <p>Список Обращений</p>
+    <div class="top-bar">
+      <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+        <button type="button" class="btn btn-light first-btn" @click="getAppeals({
+          filterBy: 'status-0'
+        })">Открытые
+        </button>
+        <button type="button" class="btn btn-light middle-btn" @click="getAppeals({
+          filterBy: 'status-2'
+        })">Закрытые
+        </button>
+        <button type="button" class="btn btn-light last-btn" @click="getAppeals({
+          filterBy: ''
+        })">Все
+        </button>
+      </div>
+      <ul class="nav">
+        <li class="nav-item search-field">
+          <input type="search"
+                 class="form-control"
+                 @input="searchByNumber"
+                 id="search"
+                 placeholder="search by number"
+                 ref="searchField">
+        </li>
+        <li class="nav-item">
+          <button type="button" class="btn btn-light" @click="onAddClick">Добавить</button>
+        </li>
+      </ul>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <button type="button"
+                  class="btn dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  role="button"
+                  aria-expanded="false">Номер заявки
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: 'number'
+                      })">По возрастанию
+              </button>
+            </li>
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: '-number'
+                      })">По убыванию
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="col">
+          <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" role="button"
+                  aria-expanded="false">Дата создания
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: 'created_at'
+                      })">По возрастанию
+              </button>
+            </li>
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: '-created_at'
+                      })">По убыванию
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="col">
+          Описание
+        </div>
+        <div class="col">
+          Создатель
+        </div>
+        <div class="col">
+          <button type="button"
+                  class="btn dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  role="button"
+                  aria-expanded="false">Статус
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: 'status'
+                      })">По возрастанию
+              </button>
+            </li>
+            <li>
+              <button type="button"
+                      class="btn dropdown-item"
+                      @click="getAppeals({
+                        orderBy: '-status'
+                      })">По убыванию
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="table">
-        <div
-            class="row"
-            v-for="appeal in appealsList"
-            :key="appeal.fields.id">
-          <div class="col">
-            {{ appeal.fields.number }}
-          </div>
-          <div class="col">
-            {{ appeal.fields.created_at }}
-          </div>
-          <div class="col">
-            {{ appeal.fields.description }}
-          </div>
-          <div class="col">
-            {{ appeal.fields.creator }}
-          </div>
-          <div class="col">
-            {{ appeal.fields.status }}
-          </div>
+    </div>
+    <div class="table">
+      <div
+          class="row"
+          v-for="appeal in appealsList"
+          :key="appeal.fields.id">
+        <div class="col">
+          {{ appeal.fields.number }}
+        </div>
+        <div class="col">
+          {{ appeal.fields.created_at }}
+        </div>
+        <div class="col">
+          {{ appeal.fields.description }}
+        </div>
+        <div class="col">
+          {{ appeal.fields.creator }}
+        </div>
+        <div class="col">
+          {{ appeal.fields.status }}
         </div>
       </div>
-    </ul>
+    </div>
   </div>
 </template>
 
@@ -81,66 +152,49 @@ export default {
   data() {
     return {
       appealsList: [],
-      addAppealWindow: false
+      filterBy: '',
+      orderBy: ''
     }
   },
   methods: {
-    getAllAppeals() {
-      fetch('http://127.0.0.1:8000/appeals/?filter=&search=').then((response) => {
-        return response.json();
-      }).then((data) => {
-        this.appealsList = data.data;
-      });
-    },
-    getOpenedAppeals() {
-      fetch('http://127.0.0.1:8000/appeals/?filter=0&search=').then((response) => {
-        return response.json();
-      }).then((data) => {
-        this.appealsList = data.data;
-      });
-    },
-    getClosedAppeals() {
-      fetch('http://127.0.0.1:8000/appeals/?filter=2&search=').then((response) => {
-        return response.json();
-      }).then((data) => {
-        this.appealsList = data.data;
-      });
-    },
-    getSortedAppeals(filter_param) {
-      fetch(`http://127.0.0.1:8000/appeals/?filter=${filter_param}&search=`).then((response) => {
+    getAppeals(params) {
+      this.$refs.searchField.value = '';
+
+      if (Object.hasOwn(params, 'orderBy')) {
+        this.orderBy = params.orderBy;
+      }
+      if (Object.hasOwn(params, 'filterBy')) {
+        this.filterBy = params.filterBy;
+      }
+      fetch(`http://127.0.0.1:8000/appeals/?filterBy=${this.filterBy}&orderBy=${this.orderBy}`).then((response) => {
         return response.json();
       }).then((data) => {
         this.appealsList = data.data;
       });
     },
     searchByNumber(e) {
-      fetch(`http://127.0.0.1:8000/appeals/?filter=&search=${e.target.value}`).then((response) => {
+      fetch(`http://127.0.0.1:8000/appeals/?search=${e.target.value}&filterBy=${this.filterBy}&orderBy=${this.orderBy}`).then((response) => {
         return response.json();
       }).then((data) => {
         this.appealsList = data.data;
       });
     },
     onAddClick() {
-      this.addAppealWindow = true;
-      // const today = new Date();
-      // this.appealsList.unshift({
-      //   fields: {
-      //     created_at : today.toDateString(),
-      //     creator : 1,
-      //     description : '',
-      //     number : 0,
-      //     status : 0
-      //   }
-      // });
+      this.$refs.modal.modalVisible = true;
+      this.$refs.modal.parentComponent = this;
     },
   },
   mounted() {
-    this.getAllAppeals();
+    this.getAppeals({});
   }
 }
 </script>
 
 <style scoped>
+p {
+  text-align: left;
+}
+
 .hello {
   margin: 5%
 }
@@ -156,17 +210,22 @@ export default {
   margin: 1%;
 }
 
-.dropdown {
-  background: #f8f9fa
-}
-
-.btn-light, .dropdown-toggle {
-  height: 40px;
-  color: black;
+.btn-light {
+  background: #F1F6FB;
 }
 
 .form-control {
-    position: relative;
-    z-index: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-item {
+  background: white;
+}
+
+.top-bar {
+  margin-top: 2vh;
+  display: flex;
+  justify-content: space-between;
 }
 </style>

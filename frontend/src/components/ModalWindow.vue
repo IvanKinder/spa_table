@@ -1,19 +1,17 @@
 <template>
-  <div class="modal-wrapper">
+  <div class="modal-wrapper" v-if="modalVisible">
     <form class="add-form">
       <div class="mb-3">
         <label for="number" class="form-label">Номер заявки</label>
-        <input type="number" class="form-control" id="number">
+        <input type="number" class="form-control" id="number" v-model="appealNumber">
       </div>
       <div class="mb-3">
         <label for="description" class="form-label">Описание</label>
-        <input type="text" class="form-control" id="description">
+        <div class="form-outline">
+          <textarea class="form-control" id="description" rows="4" v-model="description"></textarea>
+        </div>
       </div>
-      <div class="mb-3">
-        <label for="status" class="form-label">Статус</label>
-        <input type="radio" class="form-control" id="status">
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary" @click="onAppealAdd">Submit</button>
     </form>
   </div>
 </template>
@@ -24,8 +22,28 @@ export default {
   data() {
     return {
       modalVisible: false,
+      appealNumber: null,
+      description: null,
+      parentComponent: null
     }
   },
+  methods: {
+    onAppealAdd() {
+      fetch(`http://127.0.0.1:8000/appeals/`, {
+        method: 'POST',
+        body: JSON.stringify({
+          appealNumber: this.appealNumber,
+          description: this.description,
+        })
+      }).then((response) => {
+        return response.json();
+      }).then((data) => {
+        console.log(data);
+        this.parentComponent.getAppeals({});
+        this.modalVisible = false;
+      });
+    }
+  }
 }
 </script>
 
@@ -43,7 +61,7 @@ export default {
 .add-form {
   background: #e0e0e0;
   margin: 20vh auto;
-  max-width: 50vw;
+  max-width: 40vw;
   padding: 2%;
   border-radius: 10px;
 }
