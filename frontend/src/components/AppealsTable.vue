@@ -4,16 +4,19 @@
     <p>Список Обращений</p>
     <div class="top-bar">
       <div class="btn-group" role="group" aria-label="Button group">
-        <button type="button" class="btn btn-light first-btn" @click="getAppeals({
-          filterBy: 'status-0'
+        <button id="openBtn" type="button" class="btn btn-light first-btn" @click="getAppeals({
+          filterBy: 'status-0',
+          button: 'openBtn'
         })">Открытые
         </button>
-        <button type="button" class="btn btn-light middle-btn" @click="getAppeals({
-          filterBy: 'status-2'
+        <button id="closeBtn" type="button" class="btn btn-light middle-btn" @click="getAppeals({
+          filterBy: 'status-2',
+          button: 'closeBtn'
         })">Закрытые
         </button>
-        <button type="button" class="btn btn-light last-btn" @click="getAppeals({
-          filterBy: ''
+        <button id="allBtn" type="button" class="btn btn-light last-btn" @click="getAppeals({
+          filterBy: '',
+          button: 'allBtn'
         })">Все
         </button>
       </div>
@@ -179,28 +182,56 @@ export default {
       appealsList: [],
       filterBy: '',
       orderBy: '',
-      pagesCount: 0,
+      pagesCount: 1,
       page: 1,
       searchLike: null,
     }
   },
   methods: {
     getAppeals(params) {
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const firstBtn = document.getElementById('1');
+
       if (Object.hasOwn(params, 'orderBy')) {
         this.orderBy = params.orderBy;
         this.$refs.searchField.value = '';
         this.searchLike = null;
+        this.page = 1;
+
+        for (let i=1; i<this.pagesCount+1; i++) {
+          document.getElementById(i.toString()).classList.remove('disabled');
+        }
+
+        nextBtn.classList.remove('disabled');
+        prevBtn.classList.add('disabled');
+        firstBtn.classList.add('disabled');
       }
       if (Object.hasOwn(params, 'filterBy')) {
         this.filterBy = params.filterBy;
         this.$refs.searchField.value = '';
         this.searchLike = null;
+        this.page = 1;
+
+        for (let i=1; i<this.pagesCount+1; i++) {
+          document.getElementById(i.toString()).classList.remove('disabled');
+        }
+
+        nextBtn.classList.remove('disabled');
+        prevBtn.classList.add('disabled');
+        firstBtn.classList.add('disabled');
       }
       fetch(`http://127.0.0.1:8000/appeals/?filterBy=${this.filterBy}&orderBy=${this.orderBy}&page=${this.page}&search=${this.searchLike}`).then((response) => {
         return response.json();
       }).then((data) => {
         this.appealsList = data.data;
         this.pagesCount = data.pagesCount;
+
+        if (this.pagesCount === 1) {
+          nextBtn.classList.add('disabled');
+        } else {
+          nextBtn.classList.remove('disabled');
+        }
       });
     },
     searchByNumber(e) {
