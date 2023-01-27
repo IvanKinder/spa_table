@@ -203,7 +203,6 @@ export default {
           document.getElementById(i.toString()).classList.remove('disabled');
         }
 
-        nextBtn.classList.remove('disabled');
         prevBtn.classList.add('disabled');
         firstBtn.classList.add('disabled');
       }
@@ -217,26 +216,30 @@ export default {
           document.getElementById(i.toString()).classList.remove('disabled');
         }
 
-        nextBtn.classList.remove('disabled');
         prevBtn.classList.add('disabled');
         firstBtn.classList.add('disabled');
       }
+
       fetch(`http://127.0.0.1:8000/appeals/?filterBy=${this.filterBy}&orderBy=${this.orderBy}&page=${this.page}&search=${this.searchLike}`).then((response) => {
         return response.json();
       }).then((data) => {
         this.appealsList = data.data;
         this.pagesCount = data.pagesCount;
 
-        if (this.pagesCount === 1) {
+        if (this.pagesCount === 1 || this.page === this.pagesCount) {
           nextBtn.classList.add('disabled');
         } else {
           nextBtn.classList.remove('disabled');
+        }
+
+        if (this.page === 1) {
+          firstBtn.classList.add('disabled');
         }
       });
     },
     searchByNumber(e) {
       this.searchLike = e.target.value;
-      this.getAppeals({});
+      this.setPage(1);
     },
     onAddClick() {
       this.$refs.modal.modalVisible = true;
