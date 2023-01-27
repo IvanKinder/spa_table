@@ -203,8 +203,8 @@ export default {
           document.getElementById(i.toString()).classList.remove('disabled');
         }
 
-        prevBtn.classList.add('disabled');
-        firstBtn.classList.add('disabled');
+        prevBtn?.classList.add('disabled');
+        firstBtn?.classList.add('disabled');
       }
       if (Object.hasOwn(params, 'filterBy')) {
         this.filterBy = params.filterBy;
@@ -216,8 +216,8 @@ export default {
           document.getElementById(i.toString()).classList.remove('disabled');
         }
 
-        prevBtn.classList.add('disabled');
-        firstBtn.classList.add('disabled');
+        prevBtn?.classList.add('disabled');
+        firstBtn?.classList.add('disabled');
       }
 
       fetch(`http://127.0.0.1:8000/appeals/?filterBy=${this.filterBy}&orderBy=${this.orderBy}&page=${this.page}&search=${this.searchLike}`).then((response) => {
